@@ -9,7 +9,6 @@ dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
 
-// const uri = 'mongodb+srv://root:root123@mycluster.qpzojmy.mongodb.net/?retryWrites=true&w=majority';
 const client = new mongo.MongoClient(process.env.DATABASE_URL, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
