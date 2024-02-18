@@ -3,8 +3,9 @@ import express from "express";
 import session from "express-session";
 
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-require('dotenv').config();
+dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
 
