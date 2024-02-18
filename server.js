@@ -2,6 +2,12 @@ import mongo, { ObjectId } from "mongodb";
 import express from "express";
 import session from "express-session";
 
+import mongoose from 'mongoose';
+
+require('dotenv').config();
+
+mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
+
 const uri = 'mongodb+srv://root:root123@mycluster.qpzojmy.mongodb.net/?retryWrites=true&w=majority';
 const client = new mongo.MongoClient(uri, {
 	useNewUrlParser: true,
