@@ -41,7 +41,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 const corsOptions = {
-  origin: 'https://chiahsiu0801.github.io/member-comment-app', // or an array of allowed origins
+  origin: 'https://chiahsiu0801.github.io', // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
 };
