@@ -5,6 +5,8 @@ import session from "express-session";
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
+import cors from 'cors';
+
 dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
@@ -37,6 +39,14 @@ app.set('views', './views');
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+
+const corsOptions = {
+  origin: 'https://chiahsiu0801.github.io/member-comment-app', // or an array of allowed origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // include cookies
+};
+
+app.use(cors(corsOptions));
 
 
 app.get('/member', async function(req, res) {
