@@ -28,6 +28,17 @@ initDB();
 
 const app = express();
 
+const corsOptions = {
+  origin: 'https://chiahsiu0801.github.io', // or an array of allowed origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // include cookies
+	allowedHeaders: 'Content-Type,Authorization'
+};
+
+app.use(cors(corsOptions));
+
+app.set("trust proxy", 1);
+
 app.use(session({
 	secret: 'anything',
 	name: 'user',
@@ -39,30 +50,12 @@ app.use(session({
     sameSite:"none"
   }
 }));
+
 app.set('view engine', 'ejs');
 app.set('views', './views');
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
-
-// const corsOptions = {
-//   origin: 'https://chiahsiu0801.github.io', // or an array of allowed origins
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   credentials: true, // include cookies
-// 	allowedHeaders: 'Content-Type,Authorization'
-// };
-
-// app.use(cors(corsOptions));
-
-app.use(function(req, res, next){
-	res.header('Access-Control-Allow-Origin', 'https://chiahsiu0801.github.io');
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, accept, access-control-allow-origin');
-
-	if ('OPTIONS' == req.method) res.send(200);
-	else next();
-});
-
 
 app.get('/member', async function(req, res) {
 	if(!req.session.member) {
