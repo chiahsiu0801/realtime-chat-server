@@ -35,7 +35,6 @@ app.use(session({
 	saveUninitialized: false,
 	store: 'store',
 	cookie: {
-    maxAge: expiredDate,
     secure:true,
     httpOnly:true,
     sameSite:"none"
