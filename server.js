@@ -49,6 +49,7 @@ const corsOptions = {
   origin: 'https://chiahsiu0801.github.io', // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
+	allowedHeaders: 'Content-Type,Authorization'
 };
 
 app.use(cors(corsOptions));
