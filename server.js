@@ -32,7 +32,14 @@ app.use(session({
 	secret: 'anything',
 	name: 'user',
 	resave: true,
-	saveUninitialized: false
+	saveUninitialized: false,
+	store: 'store',
+	cookie: {
+    maxAge: expiredDate,
+    secure:true,
+    httpOnly:true,
+    sameSite:"none"
+  }
 }));
 app.set('view engine', 'ejs');
 app.set('views', './views');
