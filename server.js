@@ -41,16 +41,33 @@ app.use(cors(corsOptions));
 
 app.set("trust proxy", 1);
 
+// app.use(session({
+// 	secret: 'anything',
+// 	name: 'user',
+// 	resave: true,
+// 	saveUninitialized: true,
+// 	cookie: {
+//     secure:false,
+//     httpOnly:true,
+//   }
+// }));
 app.use(session({
-	secret: 'anything',
-	name: 'user',
-	resave: true,
+	cookie:{
+			secure: true,
+			maxAge:60000
+				 },
+	store: new RedisStore(),
+	secret: 'secret',
 	saveUninitialized: true,
-	cookie: {
-    secure:false,
-    httpOnly:true,
-  }
-}));
+	resave: false
+	}));
+
+app.use(function(req,res,next){
+if(!req.session){
+		return next(new Error('Oh no')) //handle error
+}
+next() //otherwise continue
+});
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
