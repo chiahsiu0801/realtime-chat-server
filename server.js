@@ -12,39 +12,39 @@ const MemoryStore = createMemoryStore(session);
 
 dotenv.config();
 
-// mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
+mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
 
-// const client = new mongo.MongoClient(process.env.DATABASE_URL, {
-// 	useNewUrlParser: true,
-// 	useUnifiedTopology: true
-// });
+const client = new mongo.MongoClient(process.env.DATABASE_URL, {
+	useNewUrlParser: true,
+	useUnifiedTopology: true
+});
 
-// let db = null;
+let db = null;
 
-// async function initDB() {
-// 	await client.connect();
-// 	console.log('資料庫連線成功');
-// 	db = client.db('member-system');
-// }
+async function initDB() {
+	await client.connect();
+	console.log('資料庫連線成功');
+	db = client.db('member-system');
+}
 
-// initDB();
+initDB();
 // mongoose.set('useNewUrlParser', true);
 // mongoose.set('useUnifiedTopology', true);
 
-const connectDB = async () => {
-	try {
-			await mongoose.connect(process.env.DATABASE_URI, {
-					useNewUrlParser: true, // No longer needed
-					// useUnifiedTopology: true, // No longer needed
-			});
-			console.log("MongoDB Connected...");
-	} catch (err) {
-			console.error(err.message);
-			process.exit(1);
-	}
-};
+// const connectDB = async () => {
+// 	try {
+// 			await mongoose.connect(process.env.DATABASE_URI, {
+// 					useNewUrlParser: true, // No longer needed
+// 					// useUnifiedTopology: true, // No longer needed
+// 			});
+// 			console.log("MongoDB Connected...");
+// 	} catch (err) {
+// 			console.error(err.message);
+// 			process.exit(1);
+// 	}
+// };
 
-connectDB();
+// connectDB();
 
 const app = express();
 
