@@ -59,7 +59,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: 'http://localhost:5173' } });
+const io = new Server(httpServer, { cors: { origin: 'https://chiahsiu0801.github.io' } });
 
 io.on('connection', (socket) => {
 	socket.on('join_room', (data) => {
