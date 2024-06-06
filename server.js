@@ -28,40 +28,29 @@ initDB();
 
 const app = express();
 
-const corsOptions = {
-  origin: [
-		'https://chiahsiu0801.github.io',
-	], // or an array of allowed origins
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true, // include cookies
-	allowedHeaders: 'Content-Type,Authorization'
-};
+// const corsOptions = {
+//   origin: [
+// 		'https://chiahsiu0801.github.io',
+// 	], // or an array of allowed origins
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   credentials: true, // include cookies
+// 	allowedHeaders: 'Content-Type,Authorization'
+// };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.set("trust proxy", 1);
 
-const MemoryStore = require('memorystore')(session)
-
-// app.use(session({
-// 	secret: 'anything',
-// 	name: 'user',
-// 	resave: true,
-// 	saveUninitialized: true,
-// 	cookie: {
-//     secure:false,
-//     httpOnly:true,
-//   }
-// }));
 app.use(session({
+	secret: 'anything',
 	name: 'user',
-	cookie: { maxAge: 86400000 },
-	store: new MemoryStore({
-		checkPeriod: 86400000 // prune expired entries every 24h
-	}),
-	resave: false,
-	secret: 'keyboard cat'
-}))
+	resave: true,
+	saveUninitialized: true,
+	cookie: {
+    secure:false,
+    httpOnly:true,
+  }
+}));
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
