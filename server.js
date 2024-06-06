@@ -31,7 +31,6 @@ const app = express();
 const corsOptions = {
   origin: [
 		'https://chiahsiu0801.github.io',
-		'http://localhost:5173'
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
