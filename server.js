@@ -12,7 +12,7 @@ const MemoryStore = createMemoryStore(session);
 
 dotenv.config();
 
-mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
+// mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
 
 // const client = new mongo.MongoClient(process.env.DATABASE_URL, {
 // 	useNewUrlParser: true,
@@ -28,6 +28,8 @@ mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name'
 // }
 
 // initDB();
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useUnifiedTopology', true);
 
 const connectDB = async () => {
 	try {
@@ -72,6 +74,7 @@ app.set("trust proxy", 1);
 
 app.use(session({
 	name: 'user',
+	saveUninitialized: true,
 	cookie: { maxAge: 86400000 },
 	store: new MemoryStore({
 		checkPeriod: 86400000 // prune expired entries every 24h
