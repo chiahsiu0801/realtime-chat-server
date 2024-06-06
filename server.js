@@ -41,16 +41,27 @@ app.use(cors(corsOptions));
 
 app.set("trust proxy", 1);
 
+const MemoryStore = require('memorystore')(session)
+
+// app.use(session({
+// 	secret: 'anything',
+// 	name: 'user',
+// 	resave: true,
+// 	saveUninitialized: true,
+// 	cookie: {
+//     secure:false,
+//     httpOnly:true,
+//   }
+// }));
 app.use(session({
-	secret: 'anything',
 	name: 'user',
-	resave: true,
-	saveUninitialized: true,
-	cookie: {
-    secure:false,
-    httpOnly:true,
-  }
-}));
+	cookie: { maxAge: 86400000 },
+	store: new MemoryStore({
+		checkPeriod: 86400000 // prune expired entries every 24h
+	}),
+	resave: false,
+	secret: 'keyboard cat'
+}))
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
