@@ -1,30 +1,47 @@
-import mongo, { ObjectId } from "mongodb";
-import express from "express";
-import session from "express-session";
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
+const mongo = require("mongodb");
+const { ObjectId } = require("mongodb");
+const express = require("express");
+const session = require("express-session");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const MemoryStore = require('memorystore')(session)
 
 dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
 
-const client = new mongo.MongoClient(process.env.DATABASE_URL, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
+// const client = new mongo.MongoClient(process.env.DATABASE_URL, {
+// 	useNewUrlParser: true,
+// 	useUnifiedTopology: true
+// });
 
-let db = null;
+// let db = null;
 
-async function initDB() {
-	await client.connect();
-	console.log('資料庫連線成功');
-	db = client.db('member-system');
-}
+// async function initDB() {
+// 	await client.connect();
+// 	console.log('資料庫連線成功');
+// 	db = client.db('member-system');
+// }
 
-initDB();
+// initDB();
+
+const connectDB = async () => {
+	try {
+			await mongoose.connect(process.env.DATABASE_URI, {
+					// useNewUrlParser: true, // No longer needed
+					// useUnifiedTopology: true, // No longer needed
+			});
+			console.log("MongoDB Connected...");
+	} catch (err) {
+			console.error(err.message);
+			process.exit(1);
+	}
+};
+
+connectDB();
 
 const app = express();
 
@@ -41,16 +58,26 @@ app.use(cors());
 
 app.set("trust proxy", 1);
 
+// app.use(session({
+// 	secret: 'anything',
+// 	name: 'user',
+// 	resave: true,
+// 	saveUninitialized: true,
+// 	cookie: {
+//     secure:false,
+//     httpOnly:true,
+//   }
+// }));
+
 app.use(session({
-	secret: 'anything',
 	name: 'user',
-	resave: true,
-	saveUninitialized: true,
-	cookie: {
-    secure:false,
-    httpOnly:true,
-  }
-}));
+	cookie: { maxAge: 86400000 },
+	store: new MemoryStore({
+		checkPeriod: 86400000 // prune expired entries every 24h
+	}),
+	resave: false,
+	secret: 'keyboard cat'
+}))
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
