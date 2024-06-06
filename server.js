@@ -28,13 +28,13 @@ dotenv.config();
 // }
 
 // initDB();
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useUnifiedTopology', true);
+// mongoose.set('useNewUrlParser', true);
+// mongoose.set('useUnifiedTopology', true);
 
 const connectDB = async () => {
 	try {
 			await mongoose.connect(process.env.DATABASE_URI, {
-					// useNewUrlParser: true, // No longer needed
+					useNewUrlParser: true, // No longer needed
 					// useUnifiedTopology: true, // No longer needed
 			});
 			console.log("MongoDB Connected...");
