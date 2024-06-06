@@ -1,13 +1,14 @@
-const mongo = require("mongodb");
-const { ObjectId } = require("mongodb");
-const express = require("express");
-const session = require("express-session");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-const MemoryStore = require('memorystore')(session)
+import mongo, { ObjectId } from "mongodb";
+import express from "express";
+import session from "express-session";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+
+import createMemoryStore from 'memorystore';
+const MemoryStore = createMemoryStore(session);
 
 dotenv.config();
 
