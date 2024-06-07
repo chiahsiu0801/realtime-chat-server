@@ -10,24 +10,20 @@ import { Server } from 'socket.io';
 import createMemoryStore from 'memorystore';
 const MemoryStore = createMemoryStore(session);
 
-dotenv.config();
+// const client = new mongo.MongoClient(process.env.DATABASE_URL, {
+// 	useNewUrlParser: true,
+// 	useUnifiedTopology: true
+// });
 
-mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/your-app-name');
+// let db = null;
 
-const client = new mongo.MongoClient(process.env.DATABASE_URL, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
+// async function initDB() {
+// 	await client.connect();
+// 	console.log('資料庫連線成功');
+// 	db = client.db('member-system');
+// }
 
-let db = null;
-
-async function initDB() {
-	await client.connect();
-	console.log('資料庫連線成功');
-	db = client.db('member-system');
-}
-
-initDB();
+// initDB();
 // mongoose.set('useNewUrlParser', true);
 // mongoose.set('useUnifiedTopology', true);
 
@@ -498,6 +494,16 @@ app.get('/room', async function(req, res) {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, function() {
-	console.log(`Express server started on port ${port}`);
-});
+
+dotenv.config();
+
+mongoose.connect(process.env.DATABASE_URL)
+	.then(() => {
+		console.log('Connected to database!');
+		app.listen(port, function() {
+			console.log(`Express server started on port ${port}`);
+		});
+	})
+	.catch(() => {
+		console.log('Connection failed!');
+	});
