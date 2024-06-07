@@ -11,9 +11,15 @@ const Member = require("./models/memberModel.js");
 const Reply = require("./models/replyModel.js");
 const Room = require("./models/roomModel.js");
 
+const port = process.env.PORT || 3000;
+
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+app.set("trust proxy", 1);
 
 const corsOptions = {
   origin: [
@@ -25,9 +31,15 @@ const corsOptions = {
 	allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  console.log('Request received:');
+  console.log('Origin:', req.headers.origin);
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
+  next();
+});
 
-app.set("trust proxy", 1);
+app.use(cors(corsOptions));
 
 
 const MemoryStore = require('memorystore')(session)
@@ -43,13 +55,6 @@ app.use(session({
 	secret: 'Anything'
 }))
 
-app.set('view engine', 'ejs');
-app.set('views', './views');
-app.use(express.static('public'));
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
-
-const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: {
 	origin: "http://localhost:5173",
 	methods: ["GET", "POST"],
@@ -425,8 +430,6 @@ app.get('/room', async function(req, res) {
 		roomList: roomList,
 	})
 });
-
-const port = process.env.PORT || 3000;
 
 mongoose.connect(process.env.DATABASE_URL)
 	.then(() => {
