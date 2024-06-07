@@ -1,6 +1,6 @@
 const { ObjectId } = require("mongodb");
-const { session } = require("express-session")
 const express = require("express");
+const session = require("express-session")
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
