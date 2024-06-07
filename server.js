@@ -20,7 +20,6 @@ const corsOptions = {
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
-	allowedHeaders: 'Content-Type,Authorization'
 };
 
 app.use(cors(corsOptions));
@@ -48,7 +47,11 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: 'http://localhost:5173' } });
+const io = new Server(httpServer, { cors: {
+	origin: "http://localhost:5173",
+	methods: ["GET", "POST"],
+	credentials: true
+}});
 
 io.on('connection', (socket) => {
 	socket.on('join_room', (data) => {
