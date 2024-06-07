@@ -23,7 +23,6 @@ app.set("trust proxy", 1);
 
 const corsOptions = {
   origin: [
-		'http://localhost:5173',
 		'https://chiahsiu0801.github.io'
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
