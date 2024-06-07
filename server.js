@@ -1,6 +1,5 @@
 const { ObjectId } = require("mongodb");
 const express = require("express");
-const session = require("express-session");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -10,6 +9,7 @@ const Comment = require("./models/commentModel.js");
 const Member = require("./models/memberModel.js");
 const Reply = require("./models/replyModel.js");
 const Room = require("./models/roomModel.js");
+const { generateToken, verifyToken, hashPassword, comparePassword } = require('./jwtUtils.js');
 
 const port = process.env.PORT || 5000;
 
@@ -30,41 +30,7 @@ const corsOptions = {
 	allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-app.use((req, res, next) => {
-  console.log('Request received:');
-  console.log('Origin:', req.headers.origin);
-  console.log('Method:', req.method);
-  console.log('Headers:', req.headers);
-  next();
-});
-
 app.use(cors(corsOptions));
-
-
-// const MemoryStore = require('memorystore')(session)
-
-// app.use(session({
-// 	name: 'user',
-// 	saveUninitialized: true,
-// 	cookie: { maxAge: 86400000 },
-// 	store: new MemoryStore({
-// 		checkPeriod: 86400000 // prune expired entries every 24h
-// 	}),
-// 	resave: false,
-// 	secret: 'Anything'
-// }))
-
-app.use(session({
-	secret: 'anything',
-	name: 'user',
-	resave: false,
-	saveUninitialized: true,
-	cookie: {
-		secure: process.env.NODE_ENV === 'production', // Only use secure cookies in production
-		httpOnly: true,
-		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Adjust sameSite based on environment
-	}
-}));
 
 const io = new Server(httpServer, { cors: {
 	origin: "https://chiahsiu0801.github.io",
@@ -146,26 +112,39 @@ io.on('connection', (socket) => {
   });
 });
 
-// app.set('port', process.env.PORT || 5000);
-
 httpServer.listen(port, function () {
   // var port = httpServer.address().port;
   console.log('Running on : ', port);
 });
 
-app.get('/member', async function(req, res) {
-	console.log('session.user in member: ', req.session.user);
+const authMiddleware = (req, res, next) => {
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+  try {
+    const decoded = verifyToken(token);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid token.' });
+  }
+};
 
-	if(!req.session.user) {
-		res.status(401);
+app.get('/member', authMiddleware, async function(req, res) {
+	console.log('Authenticated user ID: ', req.user.id);
 
-		console.log('Without session id');
+  const member = await Member.findById(req.user.id);
+	if (!member) {
+    res.status(401);
 
-		return res.send({
-			message: 'Without session id'
-		});
-	}
-	const member = req.session.user;
+    console.log('Without session id');
+
+    return res.send({
+      message: 'Without session id'
+    });
+  }
+
 	const roomId = req.query.roomId;
 
 	if(roomId) {
@@ -204,29 +183,33 @@ app.post('/signup', async function(req, res) {
 		});
 	}
 
+	const hashedPassword = await hashPassword(password);
+
 	member = new Member({
 		name: username,
 		email: email,
-		password: password,
+		password: hashedPassword,
 		imageUrl: imageUrl
 	});
 
 	await member.save();
 
-	req.session.user = member;
+	// req.session.user = member;
+	const token = generateToken(member);
 
 	res.send({
 		member: member.name,
-		success: true
+		success: true,
+		token: token,
 	})
 });
 
 app.post('/login', async function(req, res) {
   const { email, password } = req.body.data;
 
-	let result = await Member.findOne({ email: email, password: password });
+	let result = await Member.findOne({ email: email });
 
-	if(result === null) {
+	if(result === null || !(await comparePassword(password, result.password))) {
 		console.log('Login failed');
 
 		res.status(400);
@@ -239,22 +222,18 @@ app.post('/login', async function(req, res) {
 
 	console.log('result in login: ', result);
 
-	req.session.user = result;
-	req.session.save()
-
-	console.log('session in login: ', req.session.user);
+	const token = generateToken(result);
 
 	console.log('Login success');
 
 	res.send({
 		member: result.name,
-		success: true
+		success: true,
+		token: token,
 	});
 });
 
 app.get('/signout', function(req, res) {
-	req.session.user = null;
-
 	res.send({
 		success: true
 	});	
