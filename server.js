@@ -61,9 +61,10 @@ app.use(session({
 	resave: false,
 	saveUninitialized: true,
 	cookie: {
-    secure:false,
-    httpOnly:true,
-  }
+		secure: process.env.NODE_ENV === 'production', // Only use secure cookies in production
+		httpOnly: true,
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Adjust sameSite based on environment
+	}
 }));
 
 const io = new Server(httpServer, { cors: {
