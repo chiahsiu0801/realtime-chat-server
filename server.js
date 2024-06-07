@@ -67,7 +67,7 @@ app.use(session({
 }));
 
 const io = new Server(httpServer, { cors: {
-	origin: "http://localhost:5173",
+	origin: "https://chiahsiu0801.github.io",
 	methods: ["GET", "POST"],
 	credentials: true
 }});
