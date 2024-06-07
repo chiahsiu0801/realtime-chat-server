@@ -438,7 +438,3 @@ mongoose.connect(process.env.DATABASE_URL)
 	.catch(() => {
 		console.log('Connection failed!');
 	});
-
-app.listen(port, function() {
-	console.log(`Express server started on port ${port}`);
-});
