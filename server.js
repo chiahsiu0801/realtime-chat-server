@@ -11,7 +11,7 @@ const Member = require("./models/memberModel.js");
 const Reply = require("./models/replyModel.js");
 const Room = require("./models/roomModel.js");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 dotenv.config();
 
@@ -135,10 +135,10 @@ io.on('connection', (socket) => {
   });
 });
 
-app.set('port', process.env.PORT || 5000);
+// app.set('port', process.env.PORT || 5000);
 
-httpServer.listen(app.get('port'), function () {
-  var port = httpServer.address().port;
+httpServer.listen(port, function () {
+  // var port = httpServer.address().port;
   console.log('Running on : ', port);
 });
 
