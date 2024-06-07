@@ -434,10 +434,11 @@ app.get('/room', async function(req, res) {
 mongoose.connect(process.env.DATABASE_URL)
 	.then(() => {
 		console.log('Connected to database!');
-		app.listen(port, function() {
-			console.log(`Express server started on port ${port}`);
-		});
 	})
 	.catch(() => {
 		console.log('Connection failed!');
 	});
+
+app.listen(port, function() {
+	console.log(`Express server started on port ${port}`);
+});
