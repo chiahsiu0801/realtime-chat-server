@@ -154,6 +154,8 @@ httpServer.listen(port, function () {
 });
 
 app.get('/member', async function(req, res) {
+	console.log('session.user in member: ', req.session.user);
+
 	if(!req.session.user) {
 		res.status(401);
 
@@ -235,8 +237,12 @@ app.post('/login', async function(req, res) {
 		});
 	}
 
+	console.log('result in login: ', result);
+
 	req.session.user = result;
 	req.session.save()
+
+	console.log('session in login: ', req.session.user);
 
 	console.log('Login success');
 
