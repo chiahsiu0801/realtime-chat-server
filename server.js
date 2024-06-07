@@ -21,9 +21,29 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.set("trust proxy", 1);
 
+app.use(session({
+  secret: 'anything',
+  name: 'user',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
+    httpOnly: true,
+    sameSite: 'lax',
+  }
+}));
+
+// const corsOptions = {
+//   origin: [
+// 		'https://chiahsiu0801.github.io'
+// 	], // or an array of allowed origins
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   credentials: true, // include cookies
+// 	allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 const corsOptions = {
   origin: [
-		'https://chiahsiu0801.github.io'
+		'http://localhost:5173'
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
@@ -32,8 +52,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// const io = new Server(httpServer, { cors: {
+// 	origin: "https://chiahsiu0801.github.io",
+// 	methods: ["GET", "POST"],
+// 	credentials: true
+// }});
 const io = new Server(httpServer, { cors: {
-	origin: "https://chiahsiu0801.github.io",
+	origin: "http://localhost:5173",
 	methods: ["GET", "POST"],
 	credentials: true
 }});
@@ -118,12 +143,14 @@ httpServer.listen(port, function () {
 });
 
 const authMiddleware = (req, res, next) => {
+	console.log('in authMiddleware');
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
   try {
     const decoded = verifyToken(token);
+		console.log('decoded: ', decoded);
     req.user = decoded;
     next();
   } catch (error) {
