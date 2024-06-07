@@ -11,6 +11,8 @@ const Member = require("./models/memberModel.js");
 const Reply = require("./models/replyModel.js");
 const Room = require("./models/roomModel.js");
 
+dotenv.config();
+
 const app = express();
 
 const corsOptions = {
@@ -20,6 +22,7 @@ const corsOptions = {
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
+	allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
@@ -424,8 +427,6 @@ app.get('/room', async function(req, res) {
 });
 
 const port = process.env.PORT || 3000;
-
-dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL)
 	.then(() => {
