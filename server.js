@@ -42,18 +42,29 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 
-const MemoryStore = require('memorystore')(session)
+// const MemoryStore = require('memorystore')(session)
+
+// app.use(session({
+// 	name: 'user',
+// 	saveUninitialized: true,
+// 	cookie: { maxAge: 86400000 },
+// 	store: new MemoryStore({
+// 		checkPeriod: 86400000 // prune expired entries every 24h
+// 	}),
+// 	resave: false,
+// 	secret: 'Anything'
+// }))
 
 app.use(session({
+	secret: 'anything',
 	name: 'user',
+	resave: true,
 	saveUninitialized: true,
-	cookie: { maxAge: 86400000 },
-	store: new MemoryStore({
-		checkPeriod: 86400000 // prune expired entries every 24h
-	}),
-	resave: false,
-	secret: 'Anything'
-}))
+	cookie: {
+    secure:false,
+    httpOnly:true,
+  }
+}));
 
 const io = new Server(httpServer, { cors: {
 	origin: "http://localhost:5173",
