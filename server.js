@@ -33,35 +33,35 @@ app.use(session({
   }
 }));
 
-// const corsOptions = {
-//   origin: [
-// 		'https://chiahsiu0801.github.io'
-// 	], // or an array of allowed origins
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   credentials: true, // include cookies
-// 	allowedHeaders: ['Content-Type', 'Authorization'],
-// };
 const corsOptions = {
   origin: [
-		'http://localhost:5173'
+		'https://chiahsiu0801.github.io'
 	], // or an array of allowed origins
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, // include cookies
 	allowedHeaders: ['Content-Type', 'Authorization'],
 };
+// const corsOptions = {
+//   origin: [
+// 		'http://localhost:5173'
+// 	], // or an array of allowed origins
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   credentials: true, // include cookies
+// 	allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 
 app.use(cors(corsOptions));
 
-// const io = new Server(httpServer, { cors: {
-// 	origin: "https://chiahsiu0801.github.io",
-// 	methods: ["GET", "POST"],
-// 	credentials: true
-// }});
 const io = new Server(httpServer, { cors: {
-	origin: "http://localhost:5173",
+	origin: "https://chiahsiu0801.github.io",
 	methods: ["GET", "POST"],
 	credentials: true
 }});
+// const io = new Server(httpServer, { cors: {
+// 	origin: "http://localhost:5173",
+// 	methods: ["GET", "POST"],
+// 	credentials: true
+// }});
 
 io.on('connection', (socket) => {
 	socket.on('join_room', (data) => {
