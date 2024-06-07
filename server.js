@@ -1,72 +1,34 @@
-import mongo, { ObjectId } from "mongodb";
-import express from "express";
-import session from "express-session";
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-
-import createMemoryStore from 'memorystore';
-const MemoryStore = createMemoryStore(session);
-
-// const client = new mongo.MongoClient(process.env.DATABASE_URL, {
-// 	useNewUrlParser: true,
-// 	useUnifiedTopology: true
-// });
-
-// let db = null;
-
-// async function initDB() {
-// 	await client.connect();
-// 	console.log('資料庫連線成功');
-// 	db = client.db('member-system');
-// }
-
-// initDB();
-// mongoose.set('useNewUrlParser', true);
-// mongoose.set('useUnifiedTopology', true);
-
-// const connectDB = async () => {
-// 	try {
-// 			await mongoose.connect(process.env.DATABASE_URI, {
-// 					useNewUrlParser: true, // No longer needed
-// 					// useUnifiedTopology: true, // No longer needed
-// 			});
-// 			console.log("MongoDB Connected...");
-// 	} catch (err) {
-// 			console.error(err.message);
-// 			process.exit(1);
-// 	}
-// };
-
-// connectDB();
+const { ObjectId } = require("mongodb");
+const express = require("express");
+const session = require("express-session");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const Comment = require("./models/commentModel.js");
+const Member = require("./models/memberModel.js");
+const Reply = require("./models/replyModel.js");
+const Room = require("./models/roomModel.js");
 
 const app = express();
 
-// const corsOptions = {
-//   origin: [
-// 		'https://chiahsiu0801.github.io',
-// 	], // or an array of allowed origins
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   credentials: true, // include cookies
-// 	allowedHeaders: 'Content-Type,Authorization'
-// };
+const corsOptions = {
+  origin: [
+		'http://localhost:5173',
+		'https://chiahsiu0801.github.io'
+	], // or an array of allowed origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // include cookies
+	allowedHeaders: 'Content-Type,Authorization'
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.set("trust proxy", 1);
 
-// app.use(session({
-// 	secret: 'anything',
-// 	name: 'user',
-// 	resave: true,
-// 	saveUninitialized: true,
-// 	cookie: {
-//     secure:false,
-//     httpOnly:true,
-//   }
-// }));
+
+const MemoryStore = require('memorystore')(session)
 
 app.use(session({
 	name: 'user',
@@ -76,7 +38,7 @@ app.use(session({
 		checkPeriod: 86400000 // prune expired entries every 24h
 	}),
 	resave: false,
-	secret: 'keyboard cat'
+	secret: 'Anything'
 }))
 
 app.set('view engine', 'ejs');
@@ -86,7 +48,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: 'https://chiahsiu0801.github.io' } });
+const io = new Server(httpServer, { cors: { origin: 'http://localhost:5173' } });
 
 io.on('connection', (socket) => {
 	socket.on('join_room', (data) => {
@@ -183,8 +145,11 @@ app.get('/member', async function(req, res) {
 	const roomId = req.query.roomId;
 
 	if(roomId) {
-		const roomCollection = db.collection('room');
-		const room = await roomCollection.findOne({ _id: new ObjectId(roomId) });
+		const room = await Room.findById(roomId);
+		if (!room) {
+			return res.status(404).send({ message: 'Room not found' });
+		}
+
 		const userIdList = room.userIdList;
 
 		if(!userIdList.includes(member._id)) {
@@ -199,24 +164,12 @@ app.get('/member', async function(req, res) {
 	res.send({member: member});	
 });
 
-app.get('/error', function(req, res) {
-	const msg = req.query.msg;
-
-	res.render('error.ejs', {
-		msg: msg
-	});
-});
-
 app.post('/signup', async function(req, res) {
 	const { username, email, password, imageUrl }	= req.body.data;
 
-	const collection = db.collection('member');
+	let member = await Member.findOne({ email: email });
 
-	let result = await collection.findOne({
-		email: email
-	});
-
-	if(result !== null) {
+	if(member !== null) {
 		console.log('Sign in failed');
 
 		res.status(400);
@@ -227,18 +180,16 @@ app.post('/signup', async function(req, res) {
 		});
 	}
 
-	result = await collection.insertOne({
+	member = new Member({
 		name: username,
 		email: email,
 		password: password,
 		imageUrl: imageUrl
 	});
 
-	let member = await collection.findOne({
-		_id: result.insertedId
-	})
+	await member.save();
 
-	req.session.member = member;
+	req.session.user = member;
 
 	res.send({
 		member: member.name,
@@ -249,14 +200,7 @@ app.post('/signup', async function(req, res) {
 app.post('/login', async function(req, res) {
   const { email, password } = req.body.data;
 
-	const collection = db.collection('member');
-
-	let result = await collection.findOne({
-		$and: [
-			{email: email},
-			{password: password}
-		]
-	});
+	let result = await Member.findOne({ email: email, password: password });
 
 	if(result === null) {
 		console.log('Login failed');
@@ -290,9 +234,8 @@ app.get('/signout', function(req, res) {
 
 app.post('/comment', async function(req, res) {
 	const { commentUserId, username, comment, date, imageUrl, roomId } = req.body;
-	const collection = db.collection('comment');
-	
-	const insertedResult = await collection.insertOne({
+
+	const result = new Comment({
 		commentUserId: commentUserId,
 		name: username,
 		comment: comment,
@@ -301,9 +244,8 @@ app.post('/comment', async function(req, res) {
 		roomId: roomId,
 	});
 
-	const result = await collection.findOne({
-		_id: insertedResult.insertedId,
-	});
+	// Save the comment to the database
+	await result.save();
 
 	res.send({
 		success: true,
@@ -312,39 +254,38 @@ app.post('/comment', async function(req, res) {
 });
 
 app.get('/comment', async function(req, res) {
-	const commentCollection = db.collection('comment');
-	const memberCollection = db.collection('member');
-	const replyCollection = db.collection('reply');
-	const roomCollection = db.collection('room');
-
 	const roomId = req.query.roomId;
+	const room = await Room.findById(roomId);
 
-	const room = await roomCollection.findOne({
-		_id: new ObjectId(roomId),
-	})
-
-	const result = await commentCollection.find({
-		roomId: roomId,
-	}).toArray();
-	const users = await memberCollection.find({}).toArray();
+	const result = await Comment.find({ roomId: roomId });
+	const users = await Member.find({});
 	let replyComments;
 
-	for(let i = 0; i < result.length; i++) {
-		const user = users.find((user) => user.name === result[i].name);
-		
-		result[i].imageUrl = user?.imageUrl;
+	const resultComments = [];
 
-		if(result[i].replyCommentIds) {
-			replyComments = await replyCollection.find({ _id: { $in: result[i].replyCommentIds } }).toArray();
-			
-			result[i].replyComments = replyComments;
-			delete result[i].replyCommentIds; 
+	for(let i = 0; i < result.length; i++) {
+		const comment = result[i].toObject();
+		const user = users.find((user) => user._id.toString() === comment.commentUserId);
+		
+		comment.imageUrl = user?.imageUrl;
+
+		console.log('result[i].replyCommentIds: ', comment.replyCommentIds);
+		if(comment.replyCommentIds) {
+			replyComments = await Reply.find({ _id: { $in: comment.replyCommentIds } });
+			// Attach the replies to the comment
+			comment.replyComments = replyComments;
+			// Remove the replyCommentIds field from the comment
+			comment.replyCommentIds = undefined;
 		}
+
+		resultComments.push(comment);
 	}
+
+	console.log('result: ', result);
 
 	res.send({
 		success: true,
-		comments: result,
+		comments: resultComments,
 		roomName: room.roomName,
 	})
 });
@@ -352,19 +293,19 @@ app.get('/comment', async function(req, res) {
 app.get('/allmembers', async function(req, res) {
 	const roomId = req.query.roomId;
 
-	const roomCollection = db.collection('room');
-	const memberCollection = db.collection('member');
+	// Find the room by ID
+	const room = await Room.findById(roomId);
 
-	const room = await roomCollection.findOne({
-		_id: new ObjectId(roomId),
-	})
+	if (!room) {
+		return res.status(404).send({ message: 'Room not found', success: false });
+	}
 
 	const userIdList = room.userIdList || [];
 
 	// Find all members whose IDs are in the userIdList
-	const members = await memberCollection.find({
-		_id: { $in: userIdList.map(id => new ObjectId(id)) },
-	}).toArray();
+	const members = await Member.find({
+		_id: { $in: userIdList.map(id => new ObjectId(id)) }
+	});
 
 	res.send({
 		success: true,
@@ -375,23 +316,21 @@ app.get('/allmembers', async function(req, res) {
 app.post('/like', async function(req, res) {
 	const { commentId, likedUser, isLike } = req.body;
 
-	const commentCollection = db.collection('comment');
+	// Find the comment by ID
+	let likedComment = await Comment.findById(commentId);
 
-	let likedComment = await commentCollection.findOne({
-		_id: new ObjectId(commentId)
-	});
-
-	if(!(likedComment.likedUser)) {
+	if (!likedComment.likedUser) {
 		likedComment.likedUser = [likedUser];
-	} else if(isLike) {
-		likedComment.likedUser.push(likedUser);
-	} else if(!isLike) {
-		likedComment.likedUser = likedComment.likedUser.filter(user => user !== likedUser);
+	} else if (isLike) {
+		if (!likedComment.likedUser.includes(likedUser)) {
+			likedComment.likedUser.push(likedUser);
+		}
+	} else {
+		likedComment.likedUser = likedComment.likedUser.filter(user => user.toString() !== likedUser.toString());
 	}
 
-	await commentCollection.replaceOne({
-		_id: new ObjectId(commentId)	
-	}, likedComment);
+	// Save the updated comment
+	await likedComment.save();
 
 	res.send({
 		success: true
@@ -401,25 +340,22 @@ app.post('/like', async function(req, res) {
 app.post('/reply', async function(req, res) {
 	const { repliedCommentId, reply, replyUserId } = req.body;
 
-	const replyCollection = db.collection('reply');
-
-	const replyComment = await replyCollection.insertOne({
+	// Create a new reply
+	const newReply = new Reply({
 		repliedCommentId: repliedCommentId,
 		replyUserId: replyUserId,
 		reply: reply,
 	});
 
-	const commentCollection = db.collection('comment');
+	// Save the reply to the database
+	const replyComment = await newReply.save();
 
-	const updatedComment = await commentCollection.findOneAndUpdate({
-		_id: new ObjectId(repliedCommentId)
-	}, {
-		$push: {
-			replyCommentIds: replyComment.insertedId,
-		}
-	}, {
-		returnDocument: 'after',
-	});
+	// Update the original comment with the new reply ID
+	const updatedComment = await Comment.findByIdAndUpdate(
+		repliedCommentId,
+		{ $push: { replyCommentIds: replyComment._id } },
+		{ new: true }
+	);
 
 	res.send({
 		success: true,
@@ -431,27 +367,24 @@ app.post('/reply', async function(req, res) {
 app.post('/createroom', async function(req, res) {
 	const { userId, roomName } = req.body;
 
-	const roomCollection = db.collection('room');
-
-	const newRoom = await roomCollection.insertOne({
+	const newRoom = new Room({
 		userIdList: [userId],
 		roomName: roomName,
 	});
 
+	// Save the room to the database
+	const savedRoom = await newRoom.save();
+
 	res.send({
 		success: true,
-		newRoomId: newRoom.insertedId,
+		newRoomId: savedRoom._id,
 	});
 });
 
 app.post('/joinroom', async function(req, res) {
 	const { roomId, userId } = req.body;
 
-	const roomCollection = db.collection('room');
-
-	const result = await roomCollection.findOne({
-		_id: new ObjectId(roomId),
-	})
+	const result = await Room.findById(roomId);
 
 	if(result === null) {
 		res.status(400);
@@ -462,13 +395,10 @@ app.post('/joinroom', async function(req, res) {
 		});
 	}
 
-	await roomCollection.findOneAndUpdate({
-		_id: new ObjectId(roomId)
-	}, {
-		$addToSet: {
-			userIdList: userId,
-		}
-	});
+	result.userIdList.addToSet(userId);
+
+	// Save the updated room
+	await result.save();
 
 	res.send({
 		success: true,
@@ -476,16 +406,13 @@ app.post('/joinroom', async function(req, res) {
 });
 
 app.get('/room', async function(req, res) {
-	const roomCollection = db.collection('room');
+	// const roomCollection = db.collection('room');
 
 	const userId = req.query.userId;
 
-	// Find rooms where the userId is in the userIdList array
-	const result = await roomCollection.find({
-		userIdList: { $in: [userId] }
+	const roomList = await Room.find({
+		userIdList: userId
 	});
-
-	const roomList = await result.toArray();
 
 	res.send({
 		success: true,
