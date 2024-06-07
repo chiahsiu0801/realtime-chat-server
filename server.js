@@ -42,14 +42,6 @@ const corsOptions = {
   credentials: true, // include cookies
 	allowedHeaders: ['Content-Type', 'Authorization'],
 };
-// const corsOptions = {
-//   origin: [
-// 		'http://localhost:5173'
-// 	], // or an array of allowed origins
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   credentials: true, // include cookies
-// 	allowedHeaders: ['Content-Type', 'Authorization'],
-// };
 
 app.use(cors(corsOptions));
 
@@ -58,11 +50,6 @@ const io = new Server(httpServer, { cors: {
 	methods: ["GET", "POST"],
 	credentials: true
 }});
-// const io = new Server(httpServer, { cors: {
-// 	origin: "http://localhost:5173",
-// 	methods: ["GET", "POST"],
-// 	credentials: true
-// }});
 
 io.on('connection', (socket) => {
 	socket.on('join_room', (data) => {
@@ -144,11 +131,8 @@ httpServer.listen(port, function () {
 });
 
 const authMiddleware = (req, res, next) => {
-	console.log('in authMiddleware');
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-	console.log('req.headers.authorization: ', req.headers.authorization);
-	console.log('token: ', token);
-	// console.log('req.headers.authorization split: ', req.headers.authorization.split(' ')[1]);
+
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
