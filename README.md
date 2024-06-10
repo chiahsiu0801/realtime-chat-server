@@ -45,13 +45,13 @@ To get a local copy up and running follow these simple steps.
    ```sh
    git clone https://github.com/chiahsiu0801/realtime-chat-server.git
    ```
-2. **Install dependencies for the front-end:**
+2. **Install dependencies for the back-end:**
    ```sh
    npm install
    ```
 ## Usage
 
-1. **Run the front-end:**
+1. **Run the back-end:**
    nodemon server.js
 2. **Be sure to clone and run the front-end code in <https://github.com/chiahsiu0801/realtime-chat-app>**
 3. Open your browser and navigate to http://localhost:5173.
