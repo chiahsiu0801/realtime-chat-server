@@ -52,7 +52,9 @@ To get a local copy up and running follow these simple steps.
 ## Usage
 
 1. **Run the back-end:**
+   ```sh
    nodemon server.js
+   ```
 2. **Be sure to clone and run the front-end code in <https://github.com/chiahsiu0801/realtime-chat-app>**
 3. Open your browser and navigate to http://localhost:5173.
 
